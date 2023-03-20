@@ -10,31 +10,28 @@ namespace SocketServerH1
         {
             //Endpoint consists of an IP address AND a port.
             //IPEndPoint endpoint = GetServerEndpoint();
-            IPEndPoint endpoint = (new IPEndPoint(IPAddress.Parse("192.168.2.3"), 11000));
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse("192.168.2.3"), 11000);
             //Start server with endpoint previously selected.
             Socket listener = new(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            
-            //listener.Bind(endpoint);
             listener.Bind(endpoint);
+            listener.Listen(10);
+            Console.WriteLine($"Server Listening on: {listener.LocalEndPoint}");
 
-            while(true) StartServer(listener);
+            while (true) StartServer(listener);
         }
 
         private void StartServer(Socket listener)
         {
-            listener.Listen(10);
-            Console.WriteLine($"Server Listening on: {listener.LocalEndPoint}");
             Socket handler = listener.Accept();
             Console.WriteLine($"Accepting connection from {handler.RemoteEndPoint}");
 
-            string msg = null;
+            string? msg = null;
             byte[] buffer = new byte[1024];
 
-            while (true)
+            while (msg == null || !msg.Contains("<EOM>"))
             {
-                int bytesRec = handler.Receive(buffer);
-                msg += Encoding.ASCII.GetString(buffer, 0, bytesRec);
-                if (msg.IndexOf("<EOM>") > -1) break;
+                int received = handler.Receive(buffer);
+                msg += Encoding.ASCII.GetString(buffer, 0, received);
             }
             Console.WriteLine($"Message: {msg}");
             handler.Shutdown(SocketShutdown.Both);
@@ -60,16 +57,13 @@ namespace SocketServerH1
                 addrList.Add(item);
 
             }
-            //Selects the IP from the list
-            int temp = 0;
-            do { Console.Write("Select server IP: "); }
-            while (!int.TryParse(Console.ReadLine(), out temp)
-            || temp > addrList.Count
-            || temp < 0);
+            //Selects the IP from the list. If input is number and is within the range of the list,
+            //use the IP
+            int temp;
+            do Console.Write("Select server IP: ");
+            while (!int.TryParse(Console.ReadLine(), out temp) || temp > addrList.Count || temp < 0);
 
-            IPAddress addr = addrList[temp];
-            IPEndPoint localEndPoint = new IPEndPoint(addr, 11000);
-            return localEndPoint;
+            return new IPEndPoint(addrList[temp], 11000);
         }
     }
 }
