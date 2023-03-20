@@ -11,20 +11,17 @@ namespace SocketServerH1
             //Endpoint consists of an IP address AND a port.
             IPEndPoint endpoint = GetServerEndpoint();
             //Start server with endpoint previously selected.
-
             Socket listener = new(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             listener.Bind(endpoint);
 
-            StartServer(listener);
+            while(true) StartServer(listener);
         }
 
         private void StartServer(Socket listener)
         {
             listener.Listen(10);
             Console.WriteLine($"Server Listening on: {listener.LocalEndPoint}");
-
             Socket handler = listener.Accept();
-
             Console.WriteLine($"Accepting connection from {handler.RemoteEndPoint}");
 
             string msg = null;
@@ -37,8 +34,6 @@ namespace SocketServerH1
                 if (msg.IndexOf("<EOM>") > -1) break;
             }
             Console.WriteLine($"Message: {msg}");
-
-
         }
 
         private IPEndPoint GetServerEndpoint()
