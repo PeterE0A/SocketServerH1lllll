@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace SocketServerH1
 {
@@ -13,7 +14,25 @@ namespace SocketServerH1
 
         private void StartServer(IPEndPoint endpoint)
         {
+            Socket listener = new(
+                endpoint.AddressFamily, 
+                SocketType.Stream,
+                ProtocolType.Tcp);
+            listener.Bind(endpoint);
+            listener.Listen(10);
+            
+            Socket handler = listener.Accept();
 
+            string msg = null;
+            byte[] buffer = new byte[1024];
+
+            while (true)
+            {
+                int bytesRec = handler.Receive(buffer);
+                msg += Encoding.ASCII.GetString(buffer, 0, bytesRec);
+                if (msg.IndexOf("<EOM>") > -1) break;
+            }
+            Console.WriteLine($"Message: {msg}");
         }
 
         private IPEndPoint GetServerIp()
