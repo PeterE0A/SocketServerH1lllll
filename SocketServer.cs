@@ -9,9 +9,12 @@ namespace SocketServerH1
         public SocketServer()
         {
             //Endpoint consists of an IP address AND a port.
-            IPEndPoint endpoint = GetServerEndpoint();
+            //IPEndPoint endpoint = GetServerEndpoint();
+            IPEndPoint endpoint = (new IPEndPoint(IPAddress.Parse("192.168.2.3"), 11000));
             //Start server with endpoint previously selected.
             Socket listener = new(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            
+            //listener.Bind(endpoint);
             listener.Bind(endpoint);
 
             while(true) StartServer(listener);
@@ -34,6 +37,8 @@ namespace SocketServerH1
                 if (msg.IndexOf("<EOM>") > -1) break;
             }
             Console.WriteLine($"Message: {msg}");
+            handler.Shutdown(SocketShutdown.Both);
+            handler.Close();
         }
 
         private IPEndPoint GetServerEndpoint()
