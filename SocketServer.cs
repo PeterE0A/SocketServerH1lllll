@@ -8,20 +8,24 @@ namespace SocketServerH1
     {
         public SocketServer()
         {
-            IPEndPoint endpoint = GetServerIp();
-            StartServer(endpoint);
+            //Endpoint consists of an IP address AND a port.
+            IPEndPoint endpoint = GetServerEndpoint();
+            //Start server with endpoint previously selected.
+
+            Socket listener = new(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            listener.Bind(endpoint);
+
+            StartServer(listener);
         }
 
-        private void StartServer(IPEndPoint endpoint)
+        private void StartServer(Socket listener)
         {
-            Socket listener = new(
-                endpoint.AddressFamily, 
-                SocketType.Stream,
-                ProtocolType.Tcp);
-            listener.Bind(endpoint);
             listener.Listen(10);
-            
+            Console.WriteLine($"Server Listening on: {listener.LocalEndPoint}");
+
             Socket handler = listener.Accept();
+
+            Console.WriteLine($"Accepting connection from {handler.RemoteEndPoint}");
 
             string msg = null;
             byte[] buffer = new byte[1024];
@@ -33,9 +37,11 @@ namespace SocketServerH1
                 if (msg.IndexOf("<EOM>") > -1) break;
             }
             Console.WriteLine($"Message: {msg}");
+
+
         }
 
-        private IPEndPoint GetServerIp()
+        private IPEndPoint GetServerEndpoint()
         {
             //Gets the hostname of the machine
             string strHostName = Dns.GetHostName();
@@ -45,18 +51,21 @@ namespace SocketServerH1
             //We create a list of IPv4 addresses
             List<IPAddress> addrList = new();
             int counter = 0;
+            //Loops through host addresslist and adds to our list
+            //if not IPv6
             foreach (var item in host.AddressList)
             {
-                if (item.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    Console.WriteLine($"{counter++} {item.ToString()}");
-                    addrList.Add(item);
-                }
+                if (item.AddressFamily == AddressFamily.InterNetworkV6) continue;
+                Console.WriteLine($"{counter++} {item.ToString()}");
+                addrList.Add(item);
+
             }
             //Selects the IP from the list
             int temp = 0;
             do { Console.Write("Select server IP: "); }
-            while (!int.TryParse(Console.ReadLine(), out temp));
+            while (!int.TryParse(Console.ReadLine(), out temp)
+            || temp > addrList.Count
+            || temp < 0);
 
             IPAddress addr = addrList[temp];
             IPEndPoint localEndPoint = new IPEndPoint(addr, 11000);
