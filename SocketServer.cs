@@ -34,6 +34,9 @@ namespace SocketServerH1
                 msg += Encoding.ASCII.GetString(buffer, 0, received);
             }
             Console.WriteLine($"Message: {msg}");
+            string msgRecieved = "Message Recieved";
+            byte[] bytes = Encoding.ASCII.GetBytes(msgRecieved);
+            handler.Send(bytes);
             handler.Shutdown(SocketShutdown.Both);
             handler.Close();
         }
