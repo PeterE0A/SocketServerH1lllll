@@ -9,8 +9,8 @@ namespace SocketServerH1
         public SocketServer()
         {
             //Endpoint consists of an IP address AND a port.
-            //IPEndPoint endpoint = GetServerEndpoint();
-            IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse("192.168.2.3"), 11000);
+            IPEndPoint endpoint = GetServerEndpoint();
+            //IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse("192.168.2.3"), 11000);
             //Start server with endpoint previously selected.
             Socket listener = new(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             listener.Bind(endpoint);
@@ -55,10 +55,11 @@ namespace SocketServerH1
                 if (item.AddressFamily == AddressFamily.InterNetworkV6) continue;
                 Console.WriteLine($"{counter++} {item.ToString()}");
                 addrList.Add(item);
-
             }
             //Selects the IP from the list. If input is number and is within the range of the list,
-            //use the IP
+            //If list contains 1 endpoint use that instead of asking.
+            if (addrList.Count == 1) return new IPEndPoint(addrList[0], 11000);
+
             int temp;
             do Console.Write("Select server IP: ");
             while (!int.TryParse(Console.ReadLine(), out temp) || temp > addrList.Count || temp < 0);
